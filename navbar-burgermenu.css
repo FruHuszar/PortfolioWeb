@@ -1,0 +1,220 @@
+/* =========================
+   NAV & BURGER MENÜ CSS
+   ========================= */
+
+/* ===== Alap navbar - desktop ===== */
+nav.navbar {
+    width: 45vw;
+    position: fixed;
+    top: 4vh;
+    left: 50%;
+    padding: 1vh 0;
+    transform: translateX(-50%);
+    background-color: color-mix(in srgb, var(--color-value-light), transparent 80%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-theme-red);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: width 0.4s ease, padding 0.4s ease, border 0.4s ease;
+    z-index: 100;
+}
+
+/* Navbar alapállapot mobilon - zárt */
+.navbar {
+    overflow: hidden;
+}
+
+/* ===== Ul és li ===== */
+.navbar ul {
+    list-style-type: none;
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+
+.navbar li {
+    display: inline-block;
+    padding: 1vh 1vw;
+}
+
+.navbar li a,
+.navbar li .dropbtn {
+    text-decoration: none;
+    color: var(--color-theme-font);
+    text-transform: uppercase;
+    font-family: Louis;
+    font-size: 1.1vw;
+}
+
+.navbar li:hover {
+    cursor: pointer;
+}
+
+.navbar li:hover:last-child {
+    cursor: default;
+}
+
+/* ===== Dropdown ===== */
+.navbar li.dropdown .dropdown-content {
+    display: none;
+    position: absolute;
+    margin-top: 20px;
+    min-width: 160px;
+    background-color: color-mix(in srgb, var(--color-value-light), transparent 50%);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--color-theme-red);
+    border-radius: 3px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+.navbar li.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.navbar li.dropdown .dropdown-content a {
+    display: block;
+    text-align: left;
+    padding: 1vh 1vw;
+    text-decoration: none;
+    color: var(--color-theme-font);
+    font-family: Louis;
+}
+
+.navbar li.dropdown .dropdown-content a:hover {
+    color: var(--color-theme-font-light);
+    transition: 0.2s;
+}
+
+/* =========================
+   BURGER GOMB
+   ========================= */
+.burger {
+    display: none; /* alap desktopon nem látszik */
+    position: fixed;
+    top: 6vh;
+    right: 10vw;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 200;
+}
+
+/* Burger ikon vonalak */
+.burger-icon,
+.burger-icon::before,
+.burger-icon::after {
+    content: '';
+    display: block;
+    height: 3px;
+    background: var(--color-theme-font);
+    border-radius: 2px;
+    transition: 0.4s;
+}
+
+.burger-icon::before {
+    position: relative;
+    top: -8px;
+}
+
+.burger-icon::after {
+    position: relative;
+    top: 5px;
+}
+
+/* X állapot */
+.burger.active .burger-icon {
+    background: transparent;
+}
+
+.burger.active .burger-icon::before {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.burger.active .burger-icon::after {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* =========================
+   MEDIA QUERY - MOBIL 768px alatt
+   ========================= */
+@media screen and (max-width: 768px) {
+
+    /* Burger gomb látható */
+    .burger {
+        display: block;
+    }
+
+    /* Navbar alap zárt állapot */
+    .navbar {
+        width: 1px;
+        height: 40vh; /* magasság fix, szélesség animálva */
+        padding: 0;
+        border: none;
+        transition: width 0.4s ease;
+    }
+
+    /* Navbar nyitott állapot */
+    .navbar.show {
+        width: 90vw; /* szélesség animációval */
+        padding: 1vh 0;
+        border: 1px solid var(--color-theme-red);
+    }
+
+    /* Ul mobilon */
+    .navbar ul {
+        grid-template-columns: 1fr;
+        justify-items: end;
+    }
+
+    /* Dropdown mobilon */
+    .navbar li.dropdown .dropdown-content {
+        position: relative;
+        margin-top: 0;
+    }
+}
+
+/* =========================
+   MEDIA QUERY - KIS MOBIL 480px alatt
+   ========================= */
+@media screen and (max-width: 480px) {
+
+    /* Burger gomb pozíció */
+    .burger {
+        top: 6vh;
+        right: 5vw;
+    }
+
+    /* Navbar szélesség */
+    nav.navbar {
+        width: 1px;
+        left: 5%;
+        top: 0;
+        transform: none;
+    }
+
+    /* Navbar nyitott állapot */
+    .navbar.show {
+        width: 90%;
+        padding: 1vh 0;
+        border: 1px solid var(--color-theme-red);
+    }
+
+    /* Ul mobilon */
+    .navbar ul {
+        grid-template-columns: 1fr;
+        justify-items: end;
+    }
+
+    /* Dropdown mobilon */
+    .navbar li.dropdown .dropdown-content {
+        position: relative;
+        margin-top: 0;
+    }
+}
