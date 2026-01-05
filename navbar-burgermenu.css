@@ -6,6 +6,7 @@
 nav.navbar {
     width: 45vw;
     position: fixed;
+    display: none;
     top: 4vh;
     left: 50%;
     padding: 1vh 0;
@@ -94,7 +95,8 @@ nav.navbar {
    BURGER GOMB
    ========================= */
 .burger {
-    display: none; /* alap desktopon nem látszik */
+    display: none;
+    /* alap desktopon nem látszik */
     position: fixed;
     top: 6vh;
     right: 10vw;
@@ -154,7 +156,8 @@ nav.navbar {
     /* Navbar alap zárt állapot */
     .navbar {
         width: 1px;
-        height: 40vh; /* magasság fix, szélesség animálva */
+        height: 40vh;
+        /* magasság fix, szélesség animálva */
         padding: 0;
         border: none;
         transition: width 0.4s ease;
@@ -162,7 +165,8 @@ nav.navbar {
 
     /* Navbar nyitott állapot */
     .navbar.show {
-        width: 90vw; /* szélesség animációval */
+        width: 90vw;
+        /* szélesség animációval */
         padding: 1vh 0;
         border: 1px solid var(--color-theme-red);
     }
