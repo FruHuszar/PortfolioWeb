@@ -20,6 +20,6 @@ document.querySelectorAll('.diag-reveal').forEach(card => {
             if (!inside) {
                 card.classList.remove('is-revealed');
             }
-        }, 120); // „mágneses” késleltetés
+        }, 120); 
     });
 });

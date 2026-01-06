@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Ring - Ultimate Viewer</title>
+    <style>
+        body { margin: 0; background-color: #1a1a1a; overflow: hidden; font-family: sans-serif; }
+        canvas { display: block; }
+        #status {
+            position: absolute; bottom: 10px; left: 10px;
+            color: #ffd700; background: rgba(0,0,0,0.7);
+            padding: 5px 15px; border-radius: 20px; font-size: 12px;
+            pointer-events: none; border: 1px solid #ffd700;
+            z-index: 100; transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+
+<div id="status">Rendszer inicializálása...</div>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.150.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.150.0/examples/jsm/"
+    }
+}
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+    const statusEl = document.getElementById('status');
+    const LOCAL_PREFIX = 'img/3D/';
+    const REMOTE_PREFIX = 'http://127.0.0.1:8000/img/3D/';
+
+    // --- ÚTVONAL KERESŐ ---
+    async function getValidPath(fileName) {
+        try {
+            const localPath = LOCAL_PREFIX + fileName;
+            const res = await fetch(localPath, { method: 'HEAD' });
+            if (res.ok) return localPath;
+        } catch (e) {}
+        return REMOTE_PREFIX + fileName;
+    }
+
+    // --- JELENET ÉS RENDERER ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    document.body.appendChild(renderer.domEncoding || renderer.domElement);
+
+    // --- KAMERA (A te értékeid) ---
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 15, 60); 
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // --- LOREM IPSUM FELIRAT (SPRITE) ---
+    function createTextLabel(text) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 512;
+        canvas.height = 128;
+        context.font = 'Bold 50px Arial';
+        context.textAlign = 'center';
+        context.fillStyle = 'red'; 
+        context.fillText(text, 256, 80);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0 });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.set(0, 0, 12); // A gyűrű felett a Z tengelyen
+        sprite.scale.set(12, 3, 1);
+        return sprite;
+    }
+
+    const label = createTextLabel("Fru");
+    scene.add(label);
+
+    // --- INICIALIZÁLÁS ---
+    async function init() {
+        // HDR Betöltés
+        statusEl.innerText = "Fények betöltése...";
+        const hdrPath = await getValidPath('studio_small_09_1k.hdr');
+        new RGBELoader().load(hdrPath, (texture) => {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            scene.environment = texture;
+        });
+
+        // Arany anyag
+        const goldMat = new THREE.MeshStandardMaterial({
+            color: 0xffd700,
+            metalness: 1.0,
+            roughness: 0.08,
+            envMapIntensity: 1.2
+        });
+
+        // Modell betöltés
+        statusEl.innerText = "Modell betöltése...";
+        const objPath = await getValidPath('ringproba.obj');
+        new OBJLoader().load(objPath, (obj) => {
+            const box = new THREE.Box3().setFromObject(obj);
+            const center = box.getCenter(new THREE.Vector3());
+            obj.position.sub(center);
+
+            obj.traverse(child => {
+                if (child.isMesh) {
+                    child.material = goldMat;
+                    child.geometry.computeVertexNormals();
+                }
+            });
+            scene.add(obj);
+            statusEl.innerText = "Arany gyűrű kész!";
+            setTimeout(() => statusEl.style.opacity = '1', 3000);
+        });
+    }
+
+    // --- ANIMÁCIÓ ---
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+
+        // Kamera pozíció figyelése a felirathoz
+        const targetView = new THREE.Vector3(0, 0, 60);
+        const dist = camera.position.distanceTo(targetView);
+
+        // Ha a kamera közel ér a (0,0,40) ponthoz, megjelenik a szöveg
+        if (dist < 8) {
+            label.material.opacity = THREE.MathUtils.lerp(label.material.opacity, 1, 0.1);
+        } else {
+            label.material.opacity = THREE.MathUtils.lerp(label.material.opacity, 0, 0.1);
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    init();
+    animate();
+</script>
+</body>
+</html>

@@ -129,6 +129,112 @@
     <footer>
         <p>© Minden jog fenntartva 2025</p>
     </footer>
+    
+    <!-- Lightbox overlay -->
+<div id="lightbox-overlay">
+    <div id="lightbox-content">
+        <span id="lightbox-close">×</span>
+        <div id="lightbox-img-container">
+            <span id="lightbox-prev" class="lightbox-nav">‹</span>
+            <img id="lightbox-img" src="" alt="Galeria kép">
+            <span id="lightbox-next" class="lightbox-nav">›</span>
+        </div>
+        <h3 id="lightbox-title"></h3>
+        <p id="lightbox-desc"></p>
+        <div id="lightbox-counter"></div>
+    </div>
+</div>
+    
+    
+    
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const images = document.querySelectorAll('.gallery-9-pic img');
+    
+    const imageData = {
+        1: {title: "Cím 1", desc: "Leírás 1"},
+        2: {title: "Cím 2", desc: "Leírás 2"},
+        3: {title: "Cím 3", desc: "Leírás 3"},
+        4: {title: "Cím 4", desc: "Leírás 4"},
+        5: {title: "Cím 5", desc: "Leírás 5"},
+        // folytasd minden képre
+    };
+
+    const overlay = document.getElementById('lightbox-overlay');
+    const imgEl = document.getElementById('lightbox-img');
+    const titleEl = document.getElementById('lightbox-title');
+    const descEl = document.getElementById('lightbox-desc');
+    const counterEl = document.getElementById('lightbox-counter');
+    const closeBtn = document.getElementById('lightbox-close');
+    const prevBtn = document.getElementById('lightbox-prev');
+    const nextBtn = document.getElementById('lightbox-next');
+
+    const imageArray = Array.from(images);
+    let currentIndex = 0;
+
+    function showLightbox(index){
+        currentIndex = index;
+        const img = imageArray[index];
+        const id = img.id;
+        imgEl.src = img.src;
+        const data = imageData[id] || {title: "", desc: ""};
+        titleEl.textContent = data.title;
+        descEl.textContent = data.desc;
+        counterEl.textContent = `${index + 1} / ${imageArray.length}`;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // scroll tiltás
+    }
+
+    function hideLightbox(){
+        overlay.style.display = 'none';
+        document.body.style.overflow = ''; // scroll vissza
+    }
+
+    function prevImage(){
+        showLightbox((currentIndex - 1 + imageArray.length) % imageArray.length);
+    }
+
+    function nextImage(){
+        showLightbox((currentIndex + 1) % imageArray.length);
+    }
+
+    // Kattintásra lightbox
+    imageArray.forEach((img,i)=> img.addEventListener('click', ()=> showLightbox(i)));
+
+    // Close overlay
+    closeBtn.addEventListener('click', hideLightbox);
+    overlay.addEventListener('click', (e)=> { if(e.target===overlay) hideLightbox(); });
+
+    // Navigáció nyilakkal
+    prevBtn.addEventListener('click', prevImage);
+    nextBtn.addEventListener('click', nextImage);
+
+    // Navigáció billentyűzettel
+    document.addEventListener('keydown', (e)=>{
+        if(overlay.style.display === 'flex'){
+            if(e.key === "ArrowLeft") prevImage();
+            if(e.key === "ArrowRight") nextImage();
+            if(e.key === "Escape") hideLightbox();
+        }
+    });
+
+    // ✅ HASH ALAPÚ AUTOMATIKUS LIGHTBOX NYITÁS
+    if (window.location.hash) {
+        const hashId = window.location.hash.replace('#', '');
+        const index = imageArray.findIndex(img => img.id === hashId);
+
+        if (index !== -1) {
+            setTimeout(() => {
+                showLightbox(index);
+            }, 100);
+        }
+    }
+
+});
+</script>
+    
+    
+    
     <script src="js/lighttheme.js?v=20251230"></script>
     <script src="js/menu.js?v=20251230"></script>
     <script>

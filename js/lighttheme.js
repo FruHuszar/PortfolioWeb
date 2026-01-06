@@ -7,13 +7,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function setTheme(theme) {
     html.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
-
-    // Emoji váltás
+    
     if (orb) {
       orb.textContent = theme === "dark" ? "🌙" : "🌞";
     }
-
-    // KÉPEK VÁLTÁSA
+    
     themeImages.forEach(img => {
       const newSrc =
         theme === "dark"
@@ -40,8 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // Kezdő theme beállítása
+  
   const savedTheme = localStorage.getItem("theme");
   if (savedTheme) {
     setTheme(savedTheme);

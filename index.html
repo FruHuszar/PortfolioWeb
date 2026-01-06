@@ -13,13 +13,14 @@
 </head>
 
 <body>
-    <header>
+    <header id="hero">
+        <div id="status">Rendszer inicializálása...</div>
         <nav class="navbar">
             <ul>
                 <li class="menulink"><a href="#">Tradicionális</a></li>
                 <li class="menulink"><a href="#">3D modellezés</a></li>
                 <li class="dropdown">
-                    <a href="javascript:void(0)" class="dropbtn">Szoftverfejlesztés</a> <!--W3school-->
+                    <a href="javascript:void(0)" class="dropbtn">Szoftverfejlesztés</a>
                     <div class="dropdown-content">
                         <a href="#">Webdesign</a>
                         <a href="#">Python projektek</a>
@@ -29,21 +30,26 @@
                 <li class="menulink"><a href="#">Linkek</a></li>
                 <li class="menulink">
                     <div class="theme-toggle-bar">
-                        <button id="theme-toggle" class="theme-switch" aria-label="Theme toggle">
+                        <button id="theme-toggle" class="theme-switch">
                             <span id="emoji-orb" class="orb">🌞</span>
                         </button>
                     </div>
                 </li>
             </ul>
         </nav>
-        <button class="burger" aria-label="Menu">
+
+        <button class="burger">
             <span class="burger-icon"></span>
             <span class="burger-bar"></span>
         </button>
+        
+        <a href="#scroll-here" id="scroll-down-btn">
+           <span class="material-symbols-outlined">keyboard_arrow_down</span>
+        </a>
     </header>
 
     <section id="cv-snippet">
-        <h2>Rólam - Önéletrajz</h2>
+        <h2 id="scroll-here">Rólam - Önéletrajz</h2>
         <div class="column">
             <div>
                 <h3>Nyelvtudás</h3>
@@ -258,7 +264,205 @@
     <footer>
         <p>© Minden jog fenntartva 2025</p>
     </footer>
+    
+    
 
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.150.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.150.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+    const statusEl = document.getElementById('status');
+    const headerEl = document.querySelector('header');
+    const scrollBtn = document.getElementById('scroll-down-btn');
+    
+    const LOCAL_PREFIX = 'img/3D/';
+    const REMOTE_PREFIX = 'http://127.0.0.1:8000/img/3D/';
+
+    let ringModel = null;
+    let rotationSpeed = 0.002;
+    let is3DActive = false;
+
+    async function getValidPath(fileName) {
+        try {
+            const localPath = LOCAL_PREFIX + fileName;
+            const res = await fetch(localPath, { method: 'HEAD' });
+            if (res.ok) return localPath;
+        } catch (e) {}
+        return REMOTE_PREFIX + fileName;
+    }
+
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(headerEl.clientWidth, headerEl.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    
+    renderer.domElement.style.pointerEvents = 'none';
+    renderer.domElement.style.touchAction = 'auto';
+    headerEl.appendChild(renderer.domElement);
+
+    const camera = new THREE.PerspectiveCamera(45, headerEl.clientWidth / headerEl.clientHeight, 0.1, 1000);
+    camera.position.set(0, 15, 60); 
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enabled = false;
+
+    function toggle3DMode(forceOff = false) {
+        if (forceOff) is3DActive = false;
+        else is3DActive = !is3DActive;
+        
+        if (is3DActive) {
+            controls.enabled = true;
+            renderer.domElement.style.pointerEvents = 'auto';
+            renderer.domElement.style.touchAction = 'none';
+            headerEl.style.cursor = 'grab';
+            statusEl.style.opacity = '1';
+            statusEl.innerText = "3D Mód: Aktív (Dupla katt kilépés)";
+            if (navigator.vibrate) navigator.vibrate([30, 30]);
+            if (scrollBtn) scrollBtn.style.opacity = "0.1";
+        } else {
+            controls.enabled = false;
+            renderer.domElement.style.pointerEvents = 'none';
+            renderer.domElement.style.touchAction = 'auto';
+            headerEl.style.cursor = 'default';
+            statusEl.innerText = "Dupla kattintás a forgatáshoz";
+            statusEl.style.opacity = '0.7';
+            if (scrollBtn) scrollBtn.style.opacity = "1";
+        }
+    }
+
+    window.addEventListener('scroll', () => {
+        if (is3DActive && window.scrollY > window.innerHeight * 0.4) {
+            toggle3DMode(true);
+        }
+    });
+
+    headerEl.addEventListener('dblclick', toggle3DMode);
+    
+    let lastTap = 0;
+    headerEl.addEventListener('touchstart', (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+            toggle3DMode();
+            e.preventDefault();
+        }
+        lastTap = currentTime;
+    });
+
+    function createTextLabel(text) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 512; canvas.height = 128;
+        context.font = 'Bold 50px Arial';
+        context.textAlign = 'center';
+        context.fillStyle = '#ff3333'; 
+        context.fillText(text, 256, 80);
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0 });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.set(0, 0, 12); 
+        sprite.scale.set(12, 3, 1);
+        return sprite;
+    }
+
+    const label = createTextLabel("Fru");
+    scene.add(label);
+
+    async function init() {
+        try {
+            const hdrPath = await getValidPath('studio_small_09_1k.hdr');
+            new RGBELoader().load(hdrPath, (texture) => {
+                texture.mapping = THREE.EquirectangularReflectionMapping;
+                scene.environment = texture;
+            });
+
+            const goldMat = new THREE.MeshStandardMaterial({
+                color: 0xffd700, metalness: 1.0, roughness: 0.06, envMapIntensity: 1.2
+            });
+
+            const objPath = await getValidPath('ringproba.obj');
+            new OBJLoader().load(objPath, (obj) => {
+                const box = new THREE.Box3().setFromObject(obj);
+                const center = box.getCenter(new THREE.Vector3());
+                obj.position.sub(center);
+                obj.traverse(child => {
+                    if (child.isMesh) {
+                        child.material = goldMat;
+                        child.geometry.computeVertexNormals();
+                    }
+                });
+                ringModel = obj;
+                scene.add(ringModel);
+                statusEl.innerText = "Dupla kattintás a forgatáshoz";
+            });
+        } catch (error) {
+            statusEl.innerText = "Hiba történt!";
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        if (ringModel) {
+            if (!is3DActive) {
+                rotationSpeed = THREE.MathUtils.lerp(rotationSpeed, 0.002, 0.03);
+                ringModel.rotation.y += rotationSpeed;
+                ringModel.rotation.x = THREE.MathUtils.lerp(ringModel.rotation.x, 0, 0.05);
+                ringModel.rotation.z = THREE.MathUtils.lerp(ringModel.rotation.z, 0, 0.05);
+            } else {
+                rotationSpeed = THREE.MathUtils.lerp(rotationSpeed, 0, 0.05);
+                ringModel.rotation.y += rotationSpeed;
+            }
+        }
+
+        controls.update();
+
+        // --- SZÖVEG LOGIKA: KAMERA ALAPÚ + IDLE TILTÁS ---
+        const targetView = new THREE.Vector3(0, 15, 60);
+        const dist = camera.position.distanceTo(targetView);
+
+        // Csak akkor engedjük megjelenni, ha AKTÍV a 3D mód ÉS közel a kamera
+        if (is3DActive && dist < 10) {
+            label.material.opacity = THREE.MathUtils.lerp(label.material.opacity, 1, 0.1);
+        } else {
+            label.material.opacity = THREE.MathUtils.lerp(label.material.opacity, 0, 0.1);
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+        const width = headerEl.clientWidth;
+        const height = headerEl.clientHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    });
+
+    init();
+    animate();
+</script>
+    
+
+
+   
+      
     <script src="js/lighttheme.js?v=20251230"></script>
     <script src="js/menu.js?v=20251230"></script>
     <script src="js/hovereffect-img.js?v=20251230"></script>
@@ -329,8 +533,7 @@
             header.style.setProperty('--y', `${y}%`);
         });
     </script>
-
-
+    
 </body>
 
 </html>
